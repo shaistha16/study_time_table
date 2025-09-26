@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>📚 Smart Study Planner</title>
+  <style>
+    :root {
+      --bg-light: linear-gradient(to right, #e0f7fa, #f1f8e9);
+      --bg-dark: #1e1e2f;
+      --text-light: #2c3e50;
+      --text-dark: #f5f5f5;
+      --card-bg-light: #fff;
+      --card-bg-dark: #2a2a3c;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .main-heading {
+      font-size: 2.8rem;
+      text-align: center;
+      font-weight: bold;
+      color: inherit;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .toggle-mode {
+      float: right;
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: -40px;
+    }
+
+    main {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    section {
+      background: var(--card-bg-light);
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: background 0.3s ease;
+    }
+
+    body.dark section {
+      background: var(--card-bg-dark);
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      color: #4a90e2;
+      border-left: 6px solid #4a90e2;
+      padding-left: 12px;
+      margin-bottom: 15px;
+    }
+
+    form input,
+    form textarea,
+    form select,
+    form button,
+    #search {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    form input:focus,
+    form textarea:focus,
+    form select:focus,
+    #search:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+    }
+
+    form button {
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #357ABD;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 18px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    body.dark li {
+      background: #3a3a4a;
+      border-color: #555;
+    }
+
+    li.completed {
+      background: #d0f5d8;
+      text-decoration: line-through;
+    }
+
+    li button {
+      background: #eee;
+      border: none;
+      padding: 8px 14px;
+      margin-top: 10px;
+      margin-right: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: background-color 0.3s ease;
+    }
+
+    li button:hover {
+      background: #ddd;
+    }
+
+    .priority-badge {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      color: white;
+      font-size: 0.85rem;
+    }
+
+    .priority-High {
+      background-color: #e74c3c;
+    }
+
+    .priority-Medium {
+      background-color: #f39c12;
+    }
+
+    .priority-Low {
+      background-color: #27ae60;
+    }
+
+    .countdown {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    #stats {
+      font-size: 1rem;
+      color: #4a90e2;
+      text-align: right;
+      margin-top: -15px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="toggle-mode" onclick="toggleDarkMode()">🌗 Toggle Mode</button>
+  <h1 class="main-heading">📚 Smart Study Planner</h1>
+
+  <main>
+    <section>
+      <h2>Create a Task</h2>
+      <form id="task-form">
+        <input type="text" id="task-title" placeholder="Task Title" required />
+        <textarea id="task-desc" placeholder="Task Description" required></textarea>
+        <input type="datetime-local" id="task-deadline" required />
+        <select id="task-priority" required>
+          <option value="" disabled selected>Select Priority</option>
+          <option value="High">High 🔴</option>
+          <option value="Medium">Medium 🟠</option>
+          <option value="Low">Low 🟢</option>
+        </select>
+        <button type="submit">Add Task</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Your Tasks</h2>
+      <input type="text" id="search" placeholder="🔍 Search tasks..." />
+      <div id="stats"></div>
+      <ul id="tasks"></ul>
+    </section>
+  </main>
+
+  <script>
+    const taskForm = document.getElementById('task-form');
+    const tasksUl = document.getElementById('tasks');
+    const searchInput = document.getElementById('search');
+    const stats = document.getElementById('stats');
+
+    let tasks = JSON.parse(localStorage.getItem('studyTasks')) || [];
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('task-title').value.trim();
+      const desc = document.getElementById('task-desc').value.trim();
+      const deadline = document.getElementById('task-deadline').value;
+      const priority = document.getElementById('task-priority').value;
+
+      if (!title || !desc || !deadline || !priority) {
+        alert("Please fill all fields!");
+        return;
+      }
+
+      const newTask = {
+        title,
+        description: desc,
+        deadline,
+        priority,
+        completed: false
+      };
+
+      console.log("New Task Added:", newTask); // Debugging log
+
+      tasks.push(newTask);
+      saveTasks();
+      renderTasks();
+      taskForm.reset();
+    });
+
+    function saveTasks() {
+      console.log("Saving Tasks to LocalStorage:", tasks); // Debugging log
+      localStorage.setItem('studyTasks', JSON.stringify(tasks));
+    }
+
+    function renderTasks(filter = "") {
+      tasksUl.innerHTML = '';
+      let completed = 0;
+
+      tasks.forEach((task, index) => {
+        if (task.title.toLowerCase().includes(filter.toLowerCase())) {
+          const li = document.createElement('li');
+          li.className = task.completed ? 'completed' : '';
+          const deadline = new Date(task.deadline);
+          const now = new Date();
+          const diff = deadline - now;
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const mins = Math.floor((diff / (1000 * 60)) % 60);
+
+          li.innerHTML = `
+            <strong>${task.title}</strong><br/>
+            <small>Deadline: ${deadline.toLocaleString()}</small>
+            <p>${task.description}</p>
+            <span class="countdown">${diff > 0 ? `⏳ ${hours}h ${mins}m left` : '⚠️ Past Due'}</span>
+            <span class="priority-badge priority-${task.priority}">${task.priority}</span>
+            <button onclick="toggleComplete(${index})">${task.completed ? 'Undo' : 'Complete'}</button>
+            <button onclick="deleteTask(${index})">Delete</button>
+          `;
+          tasksUl.appendChild(li);
+
+          if (task.completed) completed++;
+        }
+      });
+
+      stats.innerHTML = `✅ Completed: ${completed} | 📌 Pending: ${tasks.length - completed}`;
+    }
+
+    function toggleComplete(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderTasks(searchInput.value);
+    }
+
+    function deleteTask(index) {
+      if (confirm("Delete this task?")) {
+        tasks.splice(index, 1);
+        saveTasks();
+        renderTasks(searchInput.value);
+      }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
+    searchInput.addEventListener("input", () => {
+      renderTasks(searchInput.value);
+    });
+
+    renderTasks();
+  </script>
+
+</body>
+</html>
